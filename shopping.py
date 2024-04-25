@@ -61,7 +61,44 @@ def load_data(filename):
     labels should be the corresponding list of labels, where each label
     is 1 if Revenue is true, and 0 otherwise.
     """
-    raise NotImplementedError
+    evidence = []
+    labels = []
+
+    months = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'June', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec']
+    months_num = enumerate(months)
+
+    month = {k: v for v, k in months_num}
+
+    with open(filename, 'r') as raw:
+        reader = csv.DictReader(raw)
+
+        for each_row in reader:
+
+            row = []
+
+            row.append(int(each_row['Administrative']))
+            row.append( float(each_row['Administrative_Duration']))
+            row.append(int(each_row['Informational']))
+            row.append(float(each_row['Informational_Duration']))
+            row.append(int(each_row['ProductRelated']))
+            row.append(float(each_row['ProductRelated_Duration']))
+            row.append(float(each_row['BounceRates']))
+            row.append(float(each_row['ExitRates']))
+            row.append(float(each_row['PageValues']))
+            row.append(float(each_row['SpecialDay']))
+            row.append(int(month[each_row['Month']]))
+            row.append(int(each_row['OperatingSystems']))
+            row.append(int(each_row['Browser']))
+            row.append(int(each_row['Region']))
+            row.append(int(each_row['TrafficType']))
+            row.append(int(each_row['VisitorType'] == 'Returning_Visitor'))
+            row.append(int(each_row['Weekend'] == 'TRUE'))
+
+            evidence.append(row)
+
+            labels.append(int(each_row['Revenue'] == 'TRUE'))
+
+    return evidence, labels
 
 
 def train_model(evidence, labels):
@@ -70,7 +107,8 @@ def train_model(evidence, labels):
     fitted k-nearest neighbor model (k=1) trained on the data.
     """
     knn = KNeighborsClassifier(n_neighbors=1)
-    return knn.fit(evidence, labels)
+    knn.fit(evidence, labels)
+    return knn
 
 
 def evaluate(labels, predictions):
@@ -94,18 +132,20 @@ def evaluate(labels, predictions):
     # return the tuple
     tp = fp = tn = fn = 0
     for actual, predicted in zip(labels, predictions):
-        if(actual == predicted and actual == 1):
+        if actual == 1 and predicted == 1:
             tp += 1
-        elif(actual == predicted and actual == 0):
+        elif  actual == 0 and predicted == 0:
             tn += 1
-        elif(actual != predicted and actual == 1):
+        elif actual == 1 and predicted == 0:
             fn += 1
-        elif(actual != predicted and actual == 0):
+        elif actual == 0 and predicted == 1:
             fp += 1
     
-    sensitivity = tp / (tp + fn)
-    specificity = tn / (tn + fp)
-    return (sensitivity, specificity)
+    
+    sensitivity = tp / (tp + fn) 
+    specificity = tn / (tn + fp) 
+
+    return (sensitivity, specificity) 
 
 
 if __name__ == "__main__":
